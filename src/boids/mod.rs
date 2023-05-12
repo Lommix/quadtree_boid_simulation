@@ -61,11 +61,11 @@ impl Plugin for BoidPlugin {
         app.add_startup_system(init_boid_scene);
         app.add_systems((
             build_or_update_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
-            // render_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             update_boids.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             move_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             color_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             ui_controls,
+            render_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
         ));
     }
 }
@@ -92,6 +92,7 @@ fn render_quadtree(
     if !universe.show_graph {
         return;
     }
+
     let regions = universe.graph.get_regions();
 
     regions.iter().for_each(|region| {
