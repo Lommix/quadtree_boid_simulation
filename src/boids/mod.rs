@@ -41,7 +41,7 @@ impl BoidUniverse {
         print!("f : {:?} {:?}\n", min, max);
         let _min = Coord::from_f32(min.x, min.y);
         let _max = Coord::from_f32(max.x, max.y);
-        print!("u : {:?} {:?}\n", _min, _max);
+
         Self {
             graph: QuadTree::new(Region::new(_min, _max)),
             speration: 0.0,
@@ -76,7 +76,10 @@ fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
         ui.add(egui::Slider::new(&mut universe.cohesion, 0.0..=1.0).text("cohesion"));
         ui.add(egui::Slider::new(&mut universe.alignment, 0.0..=1.0).text("alignment"));
         ui.add(egui::Slider::new(&mut universe.speed, 0.0..=10.0).text("speed"));
-        ui.add(egui::Checkbox::new(&mut universe.show_graph, "Render Graph"));
+        ui.add(egui::Checkbox::new(
+            &mut universe.show_graph,
+            "Render Graph",
+        ));
     });
 }
 

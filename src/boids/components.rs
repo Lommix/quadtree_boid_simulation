@@ -14,7 +14,7 @@ pub struct Boid;
 pub struct Collider {
     pub id: Option<SlotId>,
     pub radius: f32,
-    pub nearby : usize,
+    pub nearby: usize,
 }
 
 impl Collider {
@@ -31,11 +31,8 @@ impl Collider {
         let max =
             Coord::from_f32(origin.x, origin.y) + Coord::from_f32(self.radius, self.radius) / 2;
 
-        let reg = Region::new(min, max);
-        // panic!("{:?} {:?} {:?} {:?}", origin, min, max, reg);
-        reg
+        Region::new(min, max)
     }
-
 }
 
 #[derive(Debug)]

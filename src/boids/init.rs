@@ -27,7 +27,7 @@ pub fn init_boid_scene(
     for _ in 0..500 {
         let x = rand::random::<i32>() % (window.width() / 2.0) as i32;
         let y = rand::random::<i32>() % (window.height() / 2.0) as i32;
-        let initial_speed = 200.0 + rand::random::<f32>() * 100.0;
+        let initial_speed = 200.0 + rand::random::<f32>() * 200.0;
         let velocity = Vec3::new(
             (rand::random::<f32>() - 0.5) * initial_speed,
             (rand::random::<f32>() - 0.5) * initial_speed,
@@ -35,34 +35,19 @@ pub fn init_boid_scene(
         );
         commands
             .spawn(
-                (
-                    MaterialMesh2dBundle {
-                        mesh: meshes
-                            .add(Mesh::from(shape::Quad::new(Vec2::new(size, size))))
-                            .into(),
-                        material: materials.add(ColorMaterial::from(Color::Hsla {
-                            hue: rand::random::<f32>() * 100.0,
-                            saturation: 0.7,
-                            lightness: 0.3,
-                            alpha: 1.0,
-                        })),
-                        transform: Transform::from_xyz(x as f32, y as f32, 0.0),
-                        ..default()
-                    }
-                    // ShapeBundle {
-                    //     path: GeometryBuilder::build_as(&rect),
-                    //     transform: Transform::from_xyz(x as f32, y as f32, 0.0),
-                    //     material: materials.add(ColorMaterial::from(Color::Hsla {
-                    //         hue: 100.0,
-                    //         saturation: 0.7,
-                    //         lightness: 0.4,
-                    //         alpha: 1.0,
-                    //     })),
-                    //     ..default()
-                    // },
-                    // Fill::color(Color::ORANGE_RED),
-                    // Stroke::new(Color::ORANGE_RED, 2.0),
-                ),
+                (MaterialMesh2dBundle {
+                    mesh: meshes
+                        .add(Mesh::from(shape::Quad::new(Vec2::new(size, size))))
+                        .into(),
+                    material: materials.add(ColorMaterial::from(Color::Hsla {
+                        hue: rand::random::<f32>() * 100.0,
+                        saturation: 0.7,
+                        lightness: 0.3,
+                        alpha: 1.0,
+                    })),
+                    transform: Transform::from_xyz(x as f32, y as f32, 0.0),
+                    ..default()
+                }),
             )
             .insert(Boid)
             .insert(Velocity { value: velocity })

@@ -28,16 +28,15 @@ pub fn update_boids(
 ) {
     query
         .iter_mut()
-        .for_each(|(entity, transform,mut collider, mut velocity)| {
+        .for_each(|(entity, transform, mut collider, mut velocity)| {
             let x = transform.translation.x as i32;
             let y = transform.translation.y as i32;
             let win = universe.graph.size();
 
             let mut velo = velocity.value;
 
-            // -------------------- Boid Movement --------------------
-            let query_region = collider.into_region(transform.translation).with_margin(20);
-
+            // -------------------- collision query --------------------
+            let query_region = collider.into_region(transform.translation).with_margin(5);
             let exclude = match &collider.id {
                 Some(id) => vec![id.clone()],
                 None => vec![],
@@ -45,7 +44,6 @@ pub fn update_boids(
 
             let collisions = universe.graph.query(&query_region, &exclude);
             collider.nearby = collisions.len();
-
 
             let (mass_center, aligment, separtion) = collisions.iter().fold(
                 (Vec3::ZERO, Vec3::ZERO, Vec3::ZERO),
@@ -57,33 +55,35 @@ pub fn update_boids(
                     )
                 },
             );
-            // -------------------- Alignment --------------------
 
             let mut direction = velo.normalize();
 
+            // -------------------- Cohesion --------------------
             if mass_center.length() > 0.0 {
-                direction += (mass_center.normalize() - transform.translation.normalize()).normalize()
+                direction += (mass_center.normalize() - transform.translation.normalize())
+                    .normalize()
                     * universe.cohesion;
             }
 
+            // -------------------- Alignment --------------------
             if aligment.length() > 0.0 {
                 direction += aligment.normalize() * universe.alignment;
             }
 
+            // -------------------- Separation --------------------
             if separtion.length() > 0.0 {
                 direction += separtion.normalize() * universe.speration;
             }
 
             velo = direction.normalize() * velo.length();
 
+            // -------------------- World Border --------------------
             let margin: i32 = 20;
-
             if (x < win.min.x + margin && velocity.value.x < 0.0)
                 || (x > win.max.x - margin && velocity.value.x > 0.0)
             {
                 velo.x *= -1.0;
             }
-
             if (y < win.min.y + margin && velocity.value.y < 0.0)
                 || (y > win.max.y - margin && velocity.value.y > 0.0)
             {
@@ -100,6 +100,12 @@ pub fn move_system(
 ) {
     query.iter_mut().for_each(|(mut transform, velocity)| {
         transform.translation += velocity.value * time.delta_seconds() * universe.speed;
+        let rotation = Quat::from_rotation_z(velocity.value.angle_between(Vec3 {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        }));
+        transform.rotation = rotation;
     });
 }
 

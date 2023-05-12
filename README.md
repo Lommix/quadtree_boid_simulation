@@ -3,7 +3,7 @@
 
 ![(screenshot)](./docs/screen.png)
 
-Quadtree implementation togother with a simple Boid algorithm along with Bevy.
+Quadtree implementation together with a simple Boid algorithm.
 
 
 ## Run
