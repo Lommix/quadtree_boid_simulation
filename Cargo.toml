@@ -1,0 +1,14 @@
+[package]
+name = "boids-quadtree"
+version = "0.1.0"
+edition = "2021"
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
+
+[dependencies]
+bevy = "0.10.1"
+bevy-inspector-egui = "0.18.3"
+bevy_prototype_lyon = "0.8.0"
+rand = "0.8.5"
+wasm-bindgen = "0.2.85"
