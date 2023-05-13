@@ -11,11 +11,11 @@ pub mod boids;
 pub mod quadtree;
 
 fn main() {
-    lol("#boids");
+    run("#boids");
 }
 
 #[wasm_bindgen]
-pub fn lol(canvas_id: &str) {
+pub fn run(canvas_id: &str) {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa::Sample4)

@@ -1,8 +1,4 @@
-import __wbg_init, { lol } from './out/boids-quadtree.js'
-
-__wbg_init().then(() => {
-	lol("#boids");
+import init, {run} from './out/boids-quadtree.js'
+init().then(() => {
+	run("#boids")
 })
-// init().then(() => {
-// 	lol("#boids");
-// })

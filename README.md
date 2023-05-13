@@ -4,6 +4,7 @@
 ![(screenshot)](./docs/screen.png)
 
 Quadtree implementation together with a boid simulation written in rust, using the bevy framework.
+Also added some fancy glow when boids group up.
 
 
 ## Run
