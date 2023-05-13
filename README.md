@@ -3,7 +3,7 @@
 
 ![(screenshot)](./docs/screen.png)
 
-Quadtree implementation together with a simple Boid algorithm.
+Quadtree implementation together with a boid simulation written in rust, using the bevy framework.
 
 
 ## Run
@@ -14,7 +14,7 @@ cargo run --release
 
 ## Export to wasm
 
-there is simple shell script to generate and export wasm bind files. Inside the www folder ist a npm vite setup to test with.
+There is simple shell script to export wasm bindings to files. Node dev setup is inside the www folder.
 
 ```
 cargo build --release --target wasm32-unknown-unknown

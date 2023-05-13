@@ -27,7 +27,7 @@ impl<T> QuadTree<T> {
         self.root.clear();
     }
 
-    pub fn query(&self, region: &Region, exclude : &Vec<SlotId>) -> Vec<&T> {
+    pub fn query(&self, region: &Region, exclude: &Vec<SlotId>) -> Vec<&T> {
         self.root
             .query(&region, &self.region_store, exclude)
             .iter()
@@ -44,9 +44,12 @@ impl<T> QuadTree<T> {
     }
 
     pub fn insert(&mut self, region: Region, values: T) -> SlotId {
-        self.region_store.insert(region);
-        let id = self.value_store.insert(values);
-        self.root.insert(&id, &self.region_store);
-        id
+        let region_id = self.region_store.insert(region);
+        let value_id = self.value_store.insert(values);
+
+        assert!(region_id == value_id);
+
+        self.root.insert(&value_id, &self.region_store);
+        value_id
     }
 }

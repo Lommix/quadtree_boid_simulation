@@ -1,13 +1,17 @@
+use std::time::Instant;
+
 use bevy::prelude::*;
 
 use crate::quadtree::region::Region;
 
-use super::{components::*, BoidUniverse};
+use super::{bench::QuadBench, components::*, BoidUniverse};
 
 pub fn build_or_update_quadtree(
     mut query: Query<(Entity, &Transform, &mut Collider, &Velocity), With<Boid>>,
     mut universe: ResMut<BoidUniverse>,
+    mut bench: ResMut<QuadBench>,
 ) {
+    let now = Instant::now();
     universe.graph.clear();
     query
         .iter_mut()
@@ -20,12 +24,16 @@ pub fn build_or_update_quadtree(
                 },
             ));
         });
+    bench.avarage_build_time = now.elapsed().as_micros();
 }
 
 pub fn update_boids(
     mut query: Query<(Entity, &Transform, &mut Collider, &mut Velocity)>,
     universe: Res<BoidUniverse>,
+    mut bench: ResMut<QuadBench>,
 ) {
+    let mut query_time: u128 = 0;
+
     query
         .iter_mut()
         .for_each(|(entity, transform, mut collider, mut velocity)| {
@@ -35,6 +43,7 @@ pub fn update_boids(
 
             let mut velo = velocity.value;
 
+            let now = Instant::now();
             // -------------------- collision query --------------------
             let query_region = collider.into_region(transform.translation).with_margin(5);
             let exclude = match &collider.id {
@@ -44,6 +53,8 @@ pub fn update_boids(
 
             let collisions = universe.graph.query(&query_region, &exclude);
             collider.nearby = collisions.len();
+
+            query_time += now.elapsed().as_nanos();
 
             let (mass_center, aligment, separtion) = collisions.iter().fold(
                 (Vec3::ZERO, Vec3::ZERO, Vec3::ZERO),
@@ -90,7 +101,8 @@ pub fn update_boids(
                 velo.y *= -1.0;
             }
             velocity.value = velo;
-        })
+        });
+    bench.avarage_query_time = query_time / query.iter().len() as u128;
 }
 
 pub fn move_system(

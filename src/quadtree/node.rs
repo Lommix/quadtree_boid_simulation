@@ -70,6 +70,43 @@ impl QuadNode {
         }
     }
 
+    pub fn remove(&mut self, value: &SlotId, region_store: &SlotMap<Region>) {
+        match &mut self.node_type {
+            NodeType::Leaf => self.values.retain(|id| id != value),
+            NodeType::Parent(children) => {
+                children
+                    .iter_mut()
+                    .filter(|child| child.region.intersects(region_store.get(value).unwrap()))
+                    .for_each(|child| child.remove(value, region_store));
+                if self.value_count_rec() < MAX_CELL_SIZE {
+                    let values = self.drain_values_rec();
+                    self.node_type = NodeType::Leaf;
+                    self.values.extend(values);
+                }
+            }
+        }
+    }
+
+    pub fn value_count_rec(&self) -> usize {
+        match &self.node_type {
+            NodeType::Leaf => self.values.len(),
+            NodeType::Parent(children) => children
+                .iter()
+                .fold(0, |acc, child| acc + child.value_count_rec()),
+        }
+    }
+
+    pub fn drain_values_rec(&mut self) -> Vec<SlotId> {
+        match &mut self.node_type {
+            NodeType::Leaf => self.values.drain(..).collect(),
+            NodeType::Parent(children) => children
+                .iter_mut()
+                .map(|c| c.drain_values_rec())
+                .flatten()
+                .collect(),
+        }
+    }
+
     pub fn insert(&mut self, value: &SlotId, region_store: &SlotMap<Region>) {
         match &mut self.node_type {
             NodeType::Leaf => {

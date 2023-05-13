@@ -1,8 +1,14 @@
 use std::path::Iter;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct SlotId {
     index: u64,
+}
+
+impl PartialEq for SlotId {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index
+    }
 }
 
 impl SlotId {
@@ -28,7 +34,8 @@ impl<T> SlotMap<T> {
     pub fn insert(&mut self, value: T) -> SlotId {
         match self.id_stack.pop() {
             Some(id) => {
-                self.data[id.index as usize] = Some(value);
+                let cell = &mut self.data[id.index as usize];
+                *cell = Some(value);
                 id
             }
             None => {
@@ -39,7 +46,11 @@ impl<T> SlotMap<T> {
         }
     }
 
-    pub fn clear(&mut self){
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    pub fn clear(&mut self) {
         self.data.clear();
         self.id_stack.clear();
     }
@@ -48,8 +59,16 @@ impl<T> SlotMap<T> {
         self.data[id.index as usize].as_ref()
     }
 
+    pub fn get_mut(&mut self, id: &SlotId) -> Option<&mut T> {
+        self.data[id.index as usize].as_mut()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.data.iter().flatten()
+    }
+
+    pub fn update(&mut self, id: &SlotId, value: T) {
+        self.data[id.index as usize] = Some(value);
     }
 
     pub fn remove(&mut self, id: SlotId) -> Option<T> {

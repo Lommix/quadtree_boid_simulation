@@ -11,12 +11,15 @@ use crate::quadtree::coord::Coord;
 use crate::quadtree::region::Region;
 use crate::quadtree::tree::QuadTree;
 
+use self::bench::QuadBench;
+use self::bench::update_benchmark;
 use self::components::Body;
 use self::init::*;
 use self::run::*;
 
 mod init;
 mod run;
+mod bench;
 
 pub const PHYISCS_TICK_RATE: f32 = 1. / 60.;
 pub mod components;
@@ -58,6 +61,7 @@ pub struct BoidPlugin;
 
 impl Plugin for BoidPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(QuadBench::default());
         app.add_startup_system(init_boid_scene);
         app.add_systems((
             build_or_update_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
@@ -65,6 +69,7 @@ impl Plugin for BoidPlugin {
             move_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             color_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             ui_controls,
+            update_benchmark,
             render_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
         ));
     }
