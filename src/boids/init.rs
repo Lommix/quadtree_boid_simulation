@@ -1,9 +1,7 @@
+use super::{components::Boid, BoidUniverse};
+use crate::boids::components::{Collider, Velocity};
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_prototype_lyon::prelude::*;
-
-use crate::boids::components::{Collider, Velocity};
-
-use super::{components::Boid, BoidUniverse};
 
 pub fn init_boid_scene(
     mut commands: Commands,

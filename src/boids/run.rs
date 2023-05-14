@@ -1,6 +1,5 @@
-use std::time::Instant;
-
 use bevy::prelude::*;
+use instant::*;
 
 use crate::quadtree::region::Region;
 
@@ -11,7 +10,9 @@ pub fn build_or_update_quadtree(
     mut universe: ResMut<BoidUniverse>,
     mut bench: ResMut<QuadBench>,
 ) {
-    let now = Instant::now();
+
+    let now = instant::Instant::now();
+
     universe.graph.clear();
     query
         .iter_mut()
@@ -24,7 +25,7 @@ pub fn build_or_update_quadtree(
                 },
             ));
         });
-    bench.avarage_build_time = now.elapsed().as_micros();
+    bench.avarage_build_time = now.elapsed().as_nanos();
 }
 
 pub fn update_boids(
@@ -43,7 +44,7 @@ pub fn update_boids(
 
             let mut velo = velocity.value;
 
-            let now = Instant::now();
+            let now = instant::Instant::now();
             // -------------------- collision query --------------------
             let query_region = collider.into_region(transform.translation).with_margin(5);
             let exclude = match &collider.id {

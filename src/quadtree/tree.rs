@@ -21,6 +21,10 @@ impl<T> QuadTree<T> {
         }
     }
 
+    pub fn value_count(&self) -> usize {
+        self.value_store.len()
+    }
+
     pub fn clear(&mut self) {
         self.region_store.clear();
         self.value_store.clear();

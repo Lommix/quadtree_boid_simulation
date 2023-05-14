@@ -7,3 +7,4 @@ pub mod tree;
 pub mod slot_map;
 
 mod node;
+mod tests;

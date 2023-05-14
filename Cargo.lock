@@ -1127,6 +1127,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_prototype_lyon",
+ "instant",
  "rand",
  "wasm-bindgen",
 ]

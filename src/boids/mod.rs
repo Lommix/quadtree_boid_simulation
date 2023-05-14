@@ -41,10 +41,8 @@ pub struct BoidUniverse {
 
 impl BoidUniverse {
     fn new(min: Vec2, max: Vec2) -> Self {
-        print!("f : {:?} {:?}\n", min, max);
         let _min = Coord::from_f32(min.x, min.y);
         let _max = Coord::from_f32(max.x, max.y);
-
         Self {
             graph: QuadTree::new(Region::new(_min, _max)),
             speration: 0.0,
@@ -93,6 +91,7 @@ fn render_quadtree(
     query: Query<Entity, With<QuadNodeRect>>,
     universe: Res<BoidUniverse>,
 ) {
+
     query.iter().for_each(|entity| {
         commands.entity(entity).despawn_recursive();
     });
@@ -102,7 +101,6 @@ fn render_quadtree(
     }
 
     let regions = universe.graph.get_regions();
-
     regions.iter().for_each(|region| {
         let (w, h) = region.size_f32();
         let rect = shapes::Rectangle {
