@@ -1,4 +1,5 @@
-import init, {run} from './out/boids-quadtree.js'
+import init, { run } from './out/boids-quadtree.js'
+
 init().then(() => {
-	run("#boids")
+	run("#boids", 900, 600)
 })

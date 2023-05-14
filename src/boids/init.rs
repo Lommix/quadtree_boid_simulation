@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use super::{components::Boid, BoidUniverse};
 use crate::boids::components::{Collider, Velocity};
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
@@ -16,13 +18,13 @@ pub fn init_boid_scene(
         Vec2::new(window.width() / 2.0, window.height() / 2.0),
     ));
 
-    let size = 5.0;
+    let size = 3.0;
     let rect = shapes::Rectangle {
         extents: Vec2::new(size, size),
         origin: shapes::RectangleOrigin::Center,
     };
 
-    for _ in 0..500 {
+    for _ in 0..300 {
         let x = rand::random::<i32>() % (window.width() / 2.0) as i32;
         let y = rand::random::<i32>() % (window.height() / 2.0) as i32;
         let initial_speed = 200.0 + rand::random::<f32>() * 200.0;
@@ -31,11 +33,13 @@ pub fn init_boid_scene(
             (rand::random::<f32>() - 0.5) * initial_speed,
             0.0,
         );
+
         commands
             .spawn(
                 (MaterialMesh2dBundle {
                     mesh: meshes
-                        .add(Mesh::from(shape::Quad::new(Vec2::new(size, size))))
+                        // .add(Mesh::from(shape::Quad::new(Vec2::new(size, size))))
+                        .add(Mesh::from(shape::RegularPolygon::new(size, 3)))
                         .into(),
                     material: materials.add(ColorMaterial::from(Color::Hsla {
                         hue: rand::random::<f32>() * 100.0,
@@ -49,6 +53,6 @@ pub fn init_boid_scene(
             )
             .insert(Boid)
             .insert(Velocity { value: velocity })
-            .insert(Collider::new(20.0));
+            .insert(Collider::new(size));
     }
 }

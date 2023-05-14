@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 use instant::*;
 
@@ -46,7 +48,7 @@ pub fn update_boids(
 
             let now = instant::Instant::now();
             // -------------------- collision query --------------------
-            let query_region = collider.into_region(transform.translation).with_margin(5);
+            let query_region = collider.into_region(transform.translation).with_margin(( universe.vision * 10.0 ) as i32);
             let exclude = match &collider.id {
                 Some(id) => vec![id.clone()],
                 None => vec![],
@@ -112,13 +114,10 @@ pub fn move_system(
     time: Res<Time>,
 ) {
     query.iter_mut().for_each(|(mut transform, velocity)| {
-        transform.translation += velocity.value * time.delta_seconds() * universe.speed;
-        let rotation = Quat::from_rotation_z(velocity.value.angle_between(Vec3 {
-            x: 1.0,
-            y: 0.0,
-            z: 0.0,
-        }));
+        let direction = velocity.value.normalize();
+        let rotation = Quat::from_rotation_z(-direction.x.atan2(direction.y));
         transform.rotation = rotation;
+        transform.translation += velocity.value * time.delta_seconds() * universe.speed;
     });
 }
 

@@ -11,15 +11,15 @@ use crate::quadtree::coord::Coord;
 use crate::quadtree::region::Region;
 use crate::quadtree::tree::QuadTree;
 
-use self::bench::QuadBench;
 use self::bench::update_benchmark;
+use self::bench::QuadBench;
 use self::components::Body;
 use self::init::*;
 use self::run::*;
 
+mod bench;
 mod init;
 mod run;
-mod bench;
 
 pub const PHYISCS_TICK_RATE: f32 = 1. / 60.;
 pub mod components;
@@ -35,6 +35,7 @@ pub struct BoidUniverse {
     pub speration: f32,
     pub cohesion: f32,
     pub alignment: f32,
+    pub vision: f32,
     pub speed: f32,
     pub show_graph: bool,
 }
@@ -48,6 +49,7 @@ impl BoidUniverse {
             speration: 0.0,
             cohesion: 0.0,
             speed: 1.0,
+            vision : 1.0,
             alignment: 0.0,
             show_graph: true,
         }
@@ -67,8 +69,8 @@ impl Plugin for BoidPlugin {
             move_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             color_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
             ui_controls,
-            update_benchmark,
-            render_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
+            remove_render_rects,
+            render_quadtree,
         ));
     }
 }
@@ -78,6 +80,7 @@ fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
         ui.add(egui::Slider::new(&mut universe.speration, 0.0..=1.0).text("speration"));
         ui.add(egui::Slider::new(&mut universe.cohesion, 0.0..=1.0).text("cohesion"));
         ui.add(egui::Slider::new(&mut universe.alignment, 0.0..=1.0).text("alignment"));
+        ui.add(egui::Slider::new(&mut universe.vision, 1.0..=10.0).text("vision"));
         ui.add(egui::Slider::new(&mut universe.speed, 0.0..=10.0).text("speed"));
         ui.add(egui::Checkbox::new(
             &mut universe.show_graph,
@@ -86,23 +89,22 @@ fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
     });
 }
 
-fn render_quadtree(
-    mut commands: Commands,
-    query: Query<Entity, With<QuadNodeRect>>,
-    universe: Res<BoidUniverse>,
-) {
-
-    query.iter().for_each(|entity| {
+fn remove_render_rects(mut commands: Commands, query: Query<Entity, With<QuadNodeRect>>) {
+    for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
-    });
+    }
+}
 
+fn render_quadtree(mut commands: Commands,mut universe: ResMut<BoidUniverse>) {
     if !universe.show_graph {
         return;
     }
 
     let regions = universe.graph.get_regions();
+
     regions.iter().for_each(|region| {
         let (w, h) = region.size_f32();
+
         let rect = shapes::Rectangle {
             extents: Vec2::new(w, h),
             origin: shapes::RectangleOrigin::BottomLeft,
@@ -114,7 +116,7 @@ fn render_quadtree(
                     transform: Transform::from_xyz(region.min.x as f32, region.min.y as f32, 1.0),
                     ..default()
                 },
-                Stroke::new(Color::WHITE, 2.0),
+                Stroke::new(Color::WHITE, 1.0),
             ))
             .insert(QuadNodeRect);
     })
