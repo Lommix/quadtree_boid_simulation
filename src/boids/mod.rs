@@ -15,14 +15,14 @@ use self::bench::*;
 use self::components::*;
 use self::init::*;
 use self::resources::*;
-use self::run::*;
+use self::systems::*;
 
 mod bench;
 mod init;
 mod resources;
-mod run;
+mod systems;
 
-pub const PHYISCS_TICK_RATE: f32 = 1. / 120.;
+pub const PHYISCS_TICK_RATE: f32 = 90.;
 pub mod components;
 
 pub struct BoidPlugin;
@@ -32,10 +32,11 @@ impl Plugin for BoidPlugin {
         app.insert_resource(QuadBench::default());
         app.add_startup_system(init_boid_scene);
         app.add_systems((
-            build_or_update_quadtree.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
-            update_boids.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
-            move_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
-            color_system.run_if(on_timer(Duration::from_secs_f32(PHYISCS_TICK_RATE))),
+            build_or_update_quadtree
+                .run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+            update_boids.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+            move_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+            color_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
             ui_controls,
             remove_render_rects,
             render_quadtree,

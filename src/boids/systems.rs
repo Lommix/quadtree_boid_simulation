@@ -43,10 +43,8 @@ pub fn update_boids(
             let x = transform.translation.x as i32;
             let y = transform.translation.y as i32;
             let win = universe.graph.size();
-
-            let mut velo = velocity.value;
-
             let now = instant::Instant::now();
+
             // -------------------- collision query --------------------
             let query_region = collider.into_region(transform.translation).with_margin(( universe.vision * 10.0 ) as i32);
             let exclude = match &collider.id {
@@ -70,7 +68,7 @@ pub fn update_boids(
                 },
             );
 
-            let mut direction = velo.normalize();
+            let mut direction = velocity.value.normalize();
 
             // -------------------- Cohesion --------------------
             if mass_center.length() > 0.0 {
@@ -89,22 +87,25 @@ pub fn update_boids(
                 direction += separtion.normalize() * universe.speration;
             }
 
-            velo = direction.normalize() * velo.length();
+            let mut new_velocity = direction.normalize() * velocity.value.length();
 
             // -------------------- World Border --------------------
             let margin: i32 = 20;
             if (x < win.min.x + margin && velocity.value.x < 0.0)
                 || (x > win.max.x - margin && velocity.value.x > 0.0)
             {
-                velo.x *= -1.0;
+                new_velocity.x *= -1.0;
             }
             if (y < win.min.y + margin && velocity.value.y < 0.0)
                 || (y > win.max.y - margin && velocity.value.y > 0.0)
             {
-                velo.y *= -1.0;
+                new_velocity.y *= -1.0;
             }
-            velocity.value = velo;
+
+            // finally set the new velocity
+            velocity.value = new_velocity;
         });
+
     bench.avarage_query_time = query_time / query.iter().len() as u128;
 }
 
