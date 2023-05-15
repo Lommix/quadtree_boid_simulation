@@ -7,7 +7,7 @@ use super::{
 #[derive(Debug)]
 enum NodeType {
     Leaf,
-    Parent([Box<QuadNode>; 4]),
+    Parent(Box<[QuadNode; 4]>),
 }
 
 #[derive(Debug)]
@@ -114,11 +114,11 @@ impl QuadNode {
 
                 if self.values.len() > MAX_CELL_SIZE && self.depth < MAX_DEPTH {
                     let divide = self.region.quad_divide();
-                    self.node_type = NodeType::Parent(
+                    self.node_type = NodeType::Parent(Box::new(
                         self.region
                             .quad_divide()
-                            .map(|reg| Box::new(QuadNode::new(reg, self.depth + 1))),
-                    );
+                            .map(|reg| QuadNode::new(reg, self.depth + 1)),
+                    ));
                     let ids: Vec<SlotId> = self.values.drain(..).collect();
                     for id in ids {
                         self.insert(&id, region_store);
