@@ -14,9 +14,14 @@ use wasm_bindgen::prelude::*;
 pub mod boids;
 pub mod quadtree;
 
-#[cfg(not(target_arch = "wasm32"))]
+
 fn main() {
     run("#boids", 1280, 720);
+}
+
+#[wasm_bindgen(start)]
+fn init(){
+    // set default start, so main is not called by wasm init.
 }
 
 #[wasm_bindgen]

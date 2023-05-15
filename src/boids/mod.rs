@@ -11,52 +11,20 @@ use crate::quadtree::coord::Coord;
 use crate::quadtree::region::Region;
 use crate::quadtree::tree::QuadTree;
 
-use self::bench::update_benchmark;
-use self::bench::QuadBench;
-use self::components::Body;
+use self::bench::*;
+use self::components::*;
 use self::init::*;
+use self::resources::*;
 use self::run::*;
 
 mod bench;
 mod init;
+mod resources;
 mod run;
 
-pub const PHYISCS_TICK_RATE: f32 = 1. / 60.;
+pub const PHYISCS_TICK_RATE: f32 = 1. / 120.;
 pub mod components;
 
-// quad render tag
-#[derive(Component)]
-pub struct QuadNodeRect;
-
-// ---------------------------  Boid Universe ---------------------------
-#[derive(Resource)]
-pub struct BoidUniverse {
-    pub graph: QuadTree<Body>,
-    pub speration: f32,
-    pub cohesion: f32,
-    pub alignment: f32,
-    pub vision: f32,
-    pub speed: f32,
-    pub show_graph: bool,
-}
-
-impl BoidUniverse {
-    fn new(min: Vec2, max: Vec2) -> Self {
-        let _min = Coord::from_f32(min.x, min.y);
-        let _max = Coord::from_f32(max.x, max.y);
-        Self {
-            graph: QuadTree::new(Region::new(_min, _max)),
-            speration: 0.0,
-            cohesion: 0.0,
-            speed: 1.0,
-            vision : 1.0,
-            alignment: 0.0,
-            show_graph: true,
-        }
-    }
-}
-
-// ---------------------------  Boid Plugin ---------------------------
 pub struct BoidPlugin;
 
 impl Plugin for BoidPlugin {
@@ -95,7 +63,7 @@ fn remove_render_rects(mut commands: Commands, query: Query<Entity, With<QuadNod
     }
 }
 
-fn render_quadtree(mut commands: Commands,mut universe: ResMut<BoidUniverse>) {
+fn render_quadtree(mut commands: Commands, mut universe: ResMut<BoidUniverse>) {
     if !universe.show_graph {
         return;
     }

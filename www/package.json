@@ -12,6 +12,5 @@
 		"vite": "^4.3.2"
 	},
 	"dependencies": {
-		"boids" : "file:out/boids-quadtree"
 	}
 }

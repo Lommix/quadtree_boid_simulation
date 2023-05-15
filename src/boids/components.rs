@@ -7,6 +7,10 @@ pub struct Velocity {
     pub value: Vec3,
 }
 
+// quad render tag
+#[derive(Component)]
+pub struct QuadNodeRect;
+
 #[derive(Component, Debug)]
 pub struct Boid;
 
