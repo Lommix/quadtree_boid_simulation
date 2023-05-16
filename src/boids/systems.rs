@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use instant::*;
 
 use crate::quadtree::region::Region;
-
 use super::{bench::QuadBench, components::*, BoidUniverse};
 
 pub fn build_or_update_quadtree(
@@ -12,9 +11,7 @@ pub fn build_or_update_quadtree(
     mut universe: ResMut<BoidUniverse>,
     mut bench: ResMut<QuadBench>,
 ) {
-
     let now = instant::Instant::now();
-
     universe.graph.clear();
     query
         .iter_mut()
@@ -36,7 +33,6 @@ pub fn update_boids(
     mut bench: ResMut<QuadBench>,
 ) {
     let mut query_time: u128 = 0;
-
     query
         .iter_mut()
         .for_each(|(entity, transform, mut collider, mut velocity)| {
@@ -114,9 +110,9 @@ pub fn move_system(
     universe: Res<BoidUniverse>,
     time: Res<Time>,
 ) {
-    query.iter_mut().for_each(|(mut transform, velocity)| {
+    query.par_iter_mut().for_each_mut(|(mut transform, velocity)| {
         let direction = velocity.value.normalize();
-        let rotation = Quat::from_rotation_z(-direction.x.atan2(direction.y));
+        let rotation = Quat::from_rotation_z(-direction.x.atan2(direction.y) + PI / 2.0);
         transform.rotation = rotation;
         transform.translation += velocity.value * time.delta_seconds() * universe.speed;
     });

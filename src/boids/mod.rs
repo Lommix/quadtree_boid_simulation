@@ -1,11 +1,12 @@
 use std::time::Duration;
 
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use bevy_inspector_egui::bevy_egui::EguiContexts;
 use bevy_inspector_egui::egui;
-use bevy_prototype_lyon::prelude::*;
-// use bevy_prototype_lyon::shapes;
+use bevy_prototype_debug_lines::*;
 
 use crate::quadtree::coord::Coord;
 use crate::quadtree::region::Region;
@@ -37,8 +38,8 @@ impl Plugin for BoidPlugin {
             update_boids.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
             move_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
             color_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+            update_benchmark,
             ui_controls,
-            remove_render_rects,
             render_quadtree,
         ));
     }
@@ -58,13 +59,11 @@ fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
     });
 }
 
-fn remove_render_rects(mut commands: Commands, query: Query<Entity, With<QuadNodeRect>>) {
-    for entity in query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-}
-
-fn render_quadtree(mut commands: Commands, mut universe: ResMut<BoidUniverse>) {
+fn render_quadtree(
+    mut commands: Commands,
+    mut universe: ResMut<BoidUniverse>,
+    mut lines: ResMut<DebugLines>,
+) {
     if !universe.show_graph {
         return;
     }
@@ -72,21 +71,16 @@ fn render_quadtree(mut commands: Commands, mut universe: ResMut<BoidUniverse>) {
     let regions = universe.graph.get_regions();
 
     regions.iter().for_each(|region| {
-        let (w, h) = region.size_f32();
+        let (min_x, min_y, max_x, max_y) = region.into_f32();
 
-        let rect = shapes::Rectangle {
-            extents: Vec2::new(w, h),
-            origin: shapes::RectangleOrigin::BottomLeft,
-        };
-        commands
-            .spawn((
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&rect),
-                    transform: Transform::from_xyz(region.min.x as f32, region.min.y as f32, 1.0),
-                    ..default()
-                },
-                Stroke::new(Color::WHITE, 1.0),
-            ))
-            .insert(QuadNodeRect);
+        let bottom_left = Vec3::new(min_x, min_y, 0.0);
+        let bottom_right = Vec3::new(max_x, min_y, 0.0);
+        let top_right = Vec3::new(max_x, max_y, 0.0);
+        let top_left = Vec3::new(min_x, max_y, 0.0);
+
+        lines.line(bottom_left, bottom_right, 0.0);
+        lines.line(bottom_right, top_right, 0.0);
+        lines.line(top_right, top_left, 0.0);
+        lines.line(top_left, bottom_left, 0.0);
     })
 }

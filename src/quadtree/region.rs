@@ -32,6 +32,15 @@ impl Region {
         )
     }
 
+    pub fn into_f32(&self) -> (f32, f32, f32, f32) {
+        (
+            self.min.x as f32,
+            self.min.y as f32,
+            self.max.x as f32,
+            self.max.y as f32,
+        )
+    }
+
     pub fn quad_divide(&self) -> [Region; 4] {
         let diag = self.max - self.min;
         let width = diag.project_x();
