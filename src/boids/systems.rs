@@ -3,8 +3,11 @@ use std::f32::consts::PI;
 use bevy::prelude::*;
 use instant::*;
 
-use crate::quadtree::region::Region;
 use super::{bench::QuadBench, components::*, BoidUniverse};
+use crate::{
+    boids::{BOID_SIZE, CURSOR_QUAD_SIZE},
+    quadtree::{coord::Coord, region::Region, slot_map::SlotId},
+};
 
 pub fn build_or_update_quadtree(
     mut query: Query<(Entity, &Transform, &mut Collider, &Velocity), With<Boid>>,
@@ -19,6 +22,7 @@ pub fn build_or_update_quadtree(
             collider.id = Some(universe.graph.insert(
                 collider.into_region(transform.translation),
                 Body {
+                    entity: entity,
                     position: transform.translation,
                     velocity: velocity.value,
                 },
@@ -42,7 +46,9 @@ pub fn update_boids(
             let now = instant::Instant::now();
 
             // -------------------- collision query --------------------
-            let query_region = collider.into_region(transform.translation).with_margin(( universe.vision * 10.0 ) as i32);
+            let query_region = collider
+                .into_region(transform.translation)
+                .with_margin((universe.vision * 10.0) as i32);
             let exclude = match &collider.id {
                 Some(id) => vec![id.clone()],
                 None => vec![],
@@ -110,12 +116,14 @@ pub fn move_system(
     universe: Res<BoidUniverse>,
     time: Res<Time>,
 ) {
-    query.par_iter_mut().for_each_mut(|(mut transform, velocity)| {
-        let direction = velocity.value.normalize();
-        let rotation = Quat::from_rotation_z(-direction.x.atan2(direction.y) + PI / 2.0);
-        transform.rotation = rotation;
-        transform.translation += velocity.value * time.delta_seconds() * universe.speed;
-    });
+    query
+        .par_iter_mut()
+        .for_each_mut(|(mut transform, velocity)| {
+            let direction = velocity.value.normalize();
+            let rotation = Quat::from_rotation_z(-direction.x.atan2(direction.y) + PI / 2.0);
+            transform.rotation = rotation;
+            transform.translation += velocity.value * time.delta_seconds() * universe.speed;
+        });
 }
 
 pub fn color_system(
@@ -141,5 +149,94 @@ pub fn color_system(
                 alpha,
             };
         };
+    });
+}
+
+
+pub fn count_boids(query : Query<&Boid>, mut universe: ResMut<BoidUniverse>){
+    universe.boid_count = query.iter().count() as u32;
+}
+
+pub fn handle_mouse(
+    mut commands: Commands,
+    mut cursor_quad: Query<&mut Transform, With<Cursor>>,
+    asset_server: Res<AssetServer>,
+    buttons: Res<Input<MouseButton>>,
+    window: Query<&Window>,
+    mut universe: ResMut<BoidUniverse>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+) {
+    let window = window.single();
+    let cursor_pos_win = window.cursor_position();
+
+    if cursor_pos_win.is_none() {
+        return;
+    }
+
+    let (camera, camera_transform) = camera.single();
+    let mut cursor_quad_transform = cursor_quad.single_mut();
+
+    match camera.viewport_to_world_2d(&camera_transform, cursor_pos_win.unwrap()) {
+        Some(pos) => {
+            cursor_quad_transform.translation = Vec3::new(pos.x, pos.y, 0.0);
+
+            if buttons.just_pressed(MouseButton::Left) {
+                self::spawn_boids(&mut commands, &asset_server, pos);
+            }
+
+            if buttons.just_pressed(MouseButton::Right) {
+                self::despawn_boids(&mut commands, pos, &universe);
+            }
+        }
+        None => {}
+    }
+}
+
+
+
+fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec2) {
+    print!("spawning at {:?}\n", position);
+
+    for _ in 0..100 {
+        let x = position.x + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
+        let y = position.y + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
+
+        let initial_speed = 200.0 + rand::random::<f32>() * 200.0;
+        let velocity = Vec3::new(
+            (rand::random::<f32>() - 0.5) * initial_speed,
+            (rand::random::<f32>() - 0.5) * initial_speed,
+            0.0,
+        );
+
+        commands
+            .spawn(SpriteBundle {
+                texture: assets.load("boid.png"),
+                transform: Transform::from_xyz(x, y, 0.0),
+                ..Default::default()
+            })
+            .insert(Boid)
+            .insert(Velocity { value: velocity })
+            .insert(Collider::new(BOID_SIZE));
+    }
+}
+
+fn despawn_boids(mut commands: &mut Commands, position: Vec2, universe: &ResMut<BoidUniverse>) {
+    print!("despawning at {:?}\n", position);
+
+    let query_region = Region::new(
+        Coord::from_f32(
+            position.x - (CURSOR_QUAD_SIZE / 2.0),
+            position.y - (CURSOR_QUAD_SIZE / 2.0),
+        ),
+        Coord::from_f32(
+            position.x + (CURSOR_QUAD_SIZE / 2.0),
+            position.y + (CURSOR_QUAD_SIZE / 2.0),
+        ),
+    );
+    let exclude: Vec<SlotId> = vec![];
+
+    let result = universe.graph.query(&query_region, &exclude);
+    result.iter().for_each(|body| {
+        commands.entity(body.entity).despawn_recursive();
     });
 }

@@ -1,3 +1,5 @@
+use bevy::utils::{HashMap, HashSet};
+
 use super::{
     coord::Coord,
     node::QuadNode,
@@ -32,11 +34,15 @@ impl<T> QuadTree<T> {
     }
 
     pub fn query(&self, region: &Region, exclude: &Vec<SlotId>) -> Vec<&T> {
-        self.root
+        let mut distinct_result: HashMap<SlotId, SlotId> = HashMap::new();
+
+        let set: HashSet<_> = self
+            .root
             .query(&region, &self.region_store, exclude)
-            .iter()
-            .map(|id| self.value_store.get(id).unwrap())
-            .collect()
+            .drain(..)
+            .collect();
+
+        set.iter().map(|id| self.value_store.get(id).unwrap()).collect()
     }
 
     pub fn size(&self) -> &Region {

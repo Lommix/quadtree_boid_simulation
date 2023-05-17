@@ -24,6 +24,10 @@ mod resources;
 mod systems;
 
 pub const PHYISCS_TICK_RATE: f32 = 90.;
+pub const BOID_SPAWN_RATE: f32 = 100.0;
+pub const CURSOR_QUAD_SIZE: f32 = 100.0;
+pub const BOID_SIZE: f32 = 5.0;
+
 pub mod components;
 
 pub struct BoidPlugin;
@@ -32,6 +36,8 @@ impl Plugin for BoidPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(QuadBench::default());
         app.add_startup_system(init_boid_scene);
+        app.add_system(count_boids);
+        app.add_system(handle_mouse);
         app.add_systems((
             build_or_update_quadtree
                 .run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
@@ -52,6 +58,7 @@ fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
         ui.add(egui::Slider::new(&mut universe.alignment, 0.0..=1.0).text("alignment"));
         ui.add(egui::Slider::new(&mut universe.vision, 1.0..=10.0).text("vision"));
         ui.add(egui::Slider::new(&mut universe.speed, 0.0..=10.0).text("speed"));
+        ui.label(format!("Boid Count: {}", universe.boid_count));
         ui.add(egui::Checkbox::new(
             &mut universe.show_graph,
             "Render Graph",

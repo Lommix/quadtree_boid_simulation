@@ -1,6 +1,6 @@
 use std::path::Iter;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq)]
 pub struct SlotId {
     index: u64,
 }

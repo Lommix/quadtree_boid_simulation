@@ -12,6 +12,7 @@ pub struct BoidUniverse {
     pub vision: f32,
     pub speed: f32,
     pub show_graph: bool,
+    pub boid_count : u32,
 }
 
 impl BoidUniverse {
@@ -25,6 +26,7 @@ impl BoidUniverse {
             speed: 1.0,
             vision : 1.0,
             alignment: 0.0,
+            boid_count : 0,
             show_graph: true,
         }
     }

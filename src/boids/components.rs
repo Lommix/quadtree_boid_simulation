@@ -15,6 +15,9 @@ pub struct QuadNodeRect;
 pub struct Boid;
 
 #[derive(Component, Debug)]
+pub struct Cursor;
+
+#[derive(Component, Debug)]
 pub struct Collider {
     pub id: Option<SlotId>,
     pub radius: f32,
@@ -41,6 +44,7 @@ impl Collider {
 
 #[derive(Debug)]
 pub struct Body {
+    pub entity : Entity,
     pub position: Vec3,
     pub velocity: Vec3,
 }
