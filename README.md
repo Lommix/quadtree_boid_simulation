@@ -4,7 +4,6 @@
 ![(screenshot)](./docs/screen.png)
 
 Quadtree implementation together with a boid simulation written in rust, using the bevy framework.
-Also added some fancy glow when boids group up.
 
 
 ## Run
@@ -12,6 +11,14 @@ Also added some fancy glow when boids group up.
 ```
 cargo run --release
 ```
+
+## Controls
+
+```
+Right click : Add 100 Boids in cursor rectangle
+Left click: Remove in cursor rectangle
+```
+
 
 ## Export to wasm
 
