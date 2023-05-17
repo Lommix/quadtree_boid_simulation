@@ -15,8 +15,8 @@ cargo run --release
 ## Controls
 
 ```
-Right click : Add 100 Boids in cursor rectangle
-Left click: Remove in cursor rectangle
+Left click : Add 100 Boids in cursor rectangle
+Right click: Remove at cursor rectangle
 ```
 
 
