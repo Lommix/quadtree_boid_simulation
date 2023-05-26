@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use bevy::diagnostic::Diagnostics;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -43,27 +44,51 @@ impl Plugin for BoidPlugin {
                 .run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
             update_boids.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
             move_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
-            color_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
-            update_benchmark,
             ui_controls,
             render_quadtree,
         ));
     }
 }
 
-fn ui_controls(mut context: EguiContexts, mut universe: ResMut<BoidUniverse>) {
-    egui::Window::new("Boid Control").show(context.ctx_mut(), |ui| {
-        ui.add(egui::Slider::new(&mut universe.speration, 0.0..=1.0).text("speration"));
-        ui.add(egui::Slider::new(&mut universe.cohesion, 0.0..=1.0).text("cohesion"));
-        ui.add(egui::Slider::new(&mut universe.alignment, 0.0..=1.0).text("alignment"));
-        ui.add(egui::Slider::new(&mut universe.vision, 1.0..=10.0).text("vision"));
-        ui.add(egui::Slider::new(&mut universe.speed, 0.0..=10.0).text("speed"));
-        ui.label(format!("Boid Count: {}", universe.boid_count));
-        ui.add(egui::Checkbox::new(
-            &mut universe.show_graph,
-            "Render Graph",
-        ));
-    });
+#[derive(Component, Debug)]
+pub struct EguiWin {
+    width: f32,
+    height: f32,
+    position: Vec3,
+}
+
+fn ui_controls(
+    mut commands: Commands,
+    mut eguiWin: Query<Entity, With<EguiWin>>,
+    mut context: EguiContexts,
+    mut universe: ResMut<BoidUniverse>,
+    diagnostics: Res<Diagnostics>,
+    bench: Res<QuadBench>,
+) {
+    egui::Window::new("Boid Control")
+        .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(0.0, 0.0))
+        .show(context.ctx_mut(), |ui| {
+            ui.add(egui::Slider::new(&mut universe.speration, 0.0..=1.0).text("speration"));
+            ui.add(egui::Slider::new(&mut universe.cohesion, 0.0..=1.0).text("cohesion"));
+            ui.add(egui::Slider::new(&mut universe.alignment, 0.0..=1.0).text("alignment"));
+            ui.add(egui::Slider::new(&mut universe.speed, 0.0..=10.0).text("speed"));
+            ui.add(egui::Checkbox::new(
+                &mut universe.show_graph,
+                "Render Graph",
+            ));
+            ui.label(format!("Boid Count: {}", universe.boid_count));
+            diagnostics
+                .iter()
+                .for_each(|diagnostic| match diagnostic.value() {
+                    Some(value) => {
+                        ui.label(format!("{} : {:.2}", diagnostic.name, value));
+                    }
+                    None => {}
+                });
+            ui.label(format!("avg. query time: {} ns", bench.avarage_query_time));
+            ui.label(format!("avg. build time: {} us", bench.avarage_build_time));
+        });
+    universe.mouse_used_by_egui = context.ctx_mut().wants_pointer_input();
 }
 
 fn render_quadtree(

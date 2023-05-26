@@ -13,6 +13,13 @@ pub struct BoidUniverse {
     pub speed: f32,
     pub show_graph: bool,
     pub boid_count : u32,
+    pub mouse_used_by_egui : bool,
+}
+
+#[derive(Resource, Default)]
+pub struct QuadBench {
+    pub avarage_query_time: u128,
+    pub avarage_build_time: u128,
 }
 
 impl BoidUniverse {
@@ -21,13 +28,14 @@ impl BoidUniverse {
         let _max = Coord::from_f32(max.x, max.y);
         Self {
             graph: QuadTree::new(Region::new(_min, _max)),
-            speration: 0.0,
-            cohesion: 0.0,
+            speration: 0.1,
+            cohesion: 0.1,
             speed: 1.0,
             vision : 1.0,
-            alignment: 0.0,
+            alignment: 0.1,
             boid_count : 0,
             show_graph: true,
+            mouse_used_by_egui : false,
         }
     }
 }

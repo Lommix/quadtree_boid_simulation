@@ -46,20 +46,6 @@ pub fn run(canvas_id: &str, width: u32, height: u32) {
 
 fn camera_init(mut commands: Commands) {
     commands.spawn((
-        Camera2dBundle {
-            camera: Camera {
-                hdr: true,
-                ..default()
-            },
-            ..default()
-        },
-        BloomSettings {
-            intensity: 0.4,
-            prefilter_settings: BloomPrefilterSettings {
-                threshold: 0.5,
-                threshold_softness: 1.0,
-            },
-            ..default()
-        },
+        Camera2dBundle::default(),
     ));
 }

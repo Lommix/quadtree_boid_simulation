@@ -41,7 +41,7 @@ pub fn init_boid_scene(
         .insert(Cursor);
 
     // spawn default boids
-    for _ in 0..3000 {
+    for _ in 0..1000 {
         let x = rand::random::<i32>() % (window.width() / 2.0) as i32;
         let y = rand::random::<i32>() % (window.height() / 2.0) as i32;
         let initial_speed = 200.0 + rand::random::<f32>() * 200.0;
@@ -54,6 +54,7 @@ pub fn init_boid_scene(
         commands
             .spawn(SpriteBundle {
                 texture: assets.load("boid.png"),
+                // texture: assets.load("/files/assets/boid.png"),
                 transform: Transform::from_xyz(x as f32, y as f32, 0.0),
                 ..Default::default()
             })

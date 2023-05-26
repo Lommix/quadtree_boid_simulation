@@ -1,9 +1,10 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
 use instant::*;
 
-use super::{bench::QuadBench, components::*, BoidUniverse};
+use super::{components::*, resources::QuadBench, BoidUniverse};
 use crate::{
     boids::{BOID_SIZE, CURSOR_QUAD_SIZE},
     quadtree::{coord::Coord, region::Region, slot_map::SlotId},
@@ -28,7 +29,7 @@ pub fn build_or_update_quadtree(
                 },
             ));
         });
-    bench.avarage_build_time = now.elapsed().as_nanos();
+    bench.avarage_build_time = now.elapsed().as_micros();
 }
 
 pub fn update_boids(
@@ -126,34 +127,7 @@ pub fn move_system(
         });
 }
 
-pub fn color_system(
-    query: Query<(&Handle<ColorMaterial>, &Collider)>,
-    time: Res<Time>,
-    mut colors: ResMut<Assets<ColorMaterial>>,
-) {
-    query.iter().for_each(|(color_handle, collider)| {
-        let color = colors.get_mut(color_handle).unwrap();
-        let color_hsla = color.color.as_hsla();
-
-        if let Color::Hsla {
-            hue,
-            saturation,
-            lightness: _,
-            alpha,
-        } = color_hsla
-        {
-            color.color = Color::Hsla {
-                hue,
-                saturation,
-                lightness: 0.3 + collider.nearby as f32 * 0.1,
-                alpha,
-            };
-        };
-    });
-}
-
-
-pub fn count_boids(query : Query<&Boid>, mut universe: ResMut<BoidUniverse>){
+pub fn count_boids(query: Query<&Boid>, mut universe: ResMut<BoidUniverse>) {
     universe.boid_count = query.iter().count() as u32;
 }
 
@@ -164,12 +138,17 @@ pub fn handle_mouse(
     buttons: Res<Input<MouseButton>>,
     window: Query<&Window>,
     mut universe: ResMut<BoidUniverse>,
+    mut egui_context: EguiContexts,
     camera: Query<(&Camera, &GlobalTransform)>,
 ) {
     let window = window.single();
     let cursor_pos_win = window.cursor_position();
 
     if cursor_pos_win.is_none() {
+        return;
+    }
+
+    if universe.mouse_used_by_egui{
         return;
     }
 
@@ -192,11 +171,7 @@ pub fn handle_mouse(
     }
 }
 
-
-
 fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec2) {
-    print!("spawning at {:?}\n", position);
-
     for _ in 0..100 {
         let x = position.x + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
         let y = position.y + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
@@ -211,6 +186,7 @@ fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec
         commands
             .spawn(SpriteBundle {
                 texture: assets.load("boid.png"),
+                // texture: assets.load("/files/assets/boid.png"),
                 transform: Transform::from_xyz(x, y, 0.0),
                 ..Default::default()
             })
@@ -221,8 +197,6 @@ fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec
 }
 
 fn despawn_boids(mut commands: &mut Commands, position: Vec2, universe: &ResMut<BoidUniverse>) {
-    print!("despawning at {:?}\n", position);
-
     let query_region = Region::new(
         Coord::from_f32(
             position.x - (CURSOR_QUAD_SIZE / 2.0),

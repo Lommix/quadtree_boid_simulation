@@ -1,18 +1,18 @@
 use bevy::{diagnostic::Diagnostics, prelude::*};
 use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
 
-#[derive(Resource, Default)]
-pub struct QuadBench {
-    pub avarage_query_time: u128,
-    pub avarage_build_time: u128,
-}
+use super::resources::QuadBench;
+
 
 pub fn update_benchmark(
     mut context: EguiContexts,
     bench: Res<QuadBench>,
     diagnostics: Res<Diagnostics>,
 ) {
-    egui::Window::new("------ Benchmark ------").show(context.ctx_mut(), |ui| {
+    egui::Window::new("------ Benchmark ------")
+        .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(0.0, 0.0))
+        .show(context.ctx_mut(), |ui| {
+
         ui.label(format!(
             "Average query time: {} ns",
             bench.avarage_query_time
