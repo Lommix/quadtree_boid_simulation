@@ -3,7 +3,9 @@
 
 ![(screenshot)](./docs/screen.png)
 
-Quadtree implementation together with a boid simulation written in rust, using the bevy framework.
+Quadtree implementation together with a boid simulation written in rust, using the bevy engine.
+
+Wasm export running in the browser on my [Blog](https://lommix.de/article/1).
 
 
 ## Run
