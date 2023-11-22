@@ -1,5 +1,4 @@
 use std::{
-    hash::Hash,
     ops::{Add, Sub, Div},
 };
 

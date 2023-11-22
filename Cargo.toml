@@ -1,15 +1,15 @@
 [package]
 name = "boids-quadtree"
 version = "0.1.0"
+authors = ["Lorenz Mielke"]
 edition = "2021"
 
 [profile.dev.package."*"]
 opt-level = 3
 
 [dependencies]
-bevy = "0.10.1"
-bevy-inspector-egui = "0.18.3"
-bevy_prototype_debug_lines = "0.10.1"
+bevy = "0.12"
+bevy-inspector-egui = "0.21"
 instant = "0.1.12"
 rand = "0.8.5"
 rayon = "1.7.0"

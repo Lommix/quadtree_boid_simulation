@@ -28,7 +28,7 @@ impl Collider {
     pub fn new(radius: f32) -> Self {
         Self {
             id: None,
-            radius: radius,
+            radius,
             nearby: 0,
         }
     }

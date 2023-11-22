@@ -7,7 +7,7 @@ use super::resources::QuadBench;
 pub fn update_benchmark(
     mut context: EguiContexts,
     bench: Res<QuadBench>,
-    diagnostics: Res<Diagnostics>,
+    // diagnostics: Res<Diagnostics>,
 ) {
     egui::Window::new("------ Benchmark ------")
         .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(0.0, 0.0))
@@ -22,13 +22,13 @@ pub fn update_benchmark(
             bench.avarage_build_time
         ));
 
-        diagnostics
-            .iter()
-            .for_each(|diagnostic| match diagnostic.value() {
-                Some(value) => {
-                    ui.label(format!("{:?} : {:.2}", diagnostic.name, value));
-                }
-                None => {}
-            })
+        // diagnostics
+        //     .iter()
+        //     .for_each(|diagnostic| match diagnostic.value() {
+        //         Some(value) => {
+        //             ui.label(format!("{:?} : {:.2}", diagnostic.name, value));
+        //         }
+        //         None => {}
+        //     })
     });
 }

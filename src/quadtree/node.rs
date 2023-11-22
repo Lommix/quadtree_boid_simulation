@@ -22,9 +22,9 @@ impl QuadNode {
     pub fn new(region: Region, depth: usize) -> Self {
         Self {
             values: Vec::new(),
-            region: region,
+            region,
             node_type: NodeType::Leaf,
-            depth: depth,
+            depth,
         }
     }
 
@@ -64,8 +64,7 @@ impl QuadNode {
             NodeType::Leaf => vec![&self.region],
             NodeType::Parent(children) => children
                 .iter()
-                .map(|child| child.get_regions())
-                .flatten()
+                .flat_map(|child| child.get_regions())
                 .collect(),
         }
     }
@@ -101,8 +100,7 @@ impl QuadNode {
             NodeType::Leaf => self.values.drain(..).collect(),
             NodeType::Parent(children) => children
                 .iter_mut()
-                .map(|c| c.drain_values_rec())
-                .flatten()
+                .flat_map(|c| c.drain_values_rec())
                 .collect(),
         }
     }
@@ -113,7 +111,7 @@ impl QuadNode {
                 self.values.push(value.clone());
 
                 if self.values.len() > MAX_CELL_SIZE && self.depth < MAX_DEPTH {
-                    let divide = self.region.quad_divide();
+                    let _divide = self.region.quad_divide();
                     self.node_type = NodeType::Parent(Box::new(
                         self.region
                             .quad_divide()

@@ -1,23 +1,14 @@
 use std::time::Duration;
 
 use bevy::diagnostic::Diagnostics;
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::diagnostic::LogDiagnosticsPlugin;
+
+use self::init::*;
+use self::resources::*;
+use self::systems::*;
 use bevy::prelude::*;
 use bevy::time::common_conditions::on_timer;
 use bevy_inspector_egui::bevy_egui::EguiContexts;
 use bevy_inspector_egui::egui;
-use bevy_prototype_debug_lines::*;
-
-use crate::quadtree::coord::Coord;
-use crate::quadtree::region::Region;
-use crate::quadtree::tree::QuadTree;
-
-use self::bench::*;
-use self::components::*;
-use self::init::*;
-use self::resources::*;
-use self::systems::*;
 
 mod bench;
 mod init;
@@ -36,17 +27,19 @@ pub struct BoidPlugin;
 impl Plugin for BoidPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(QuadBench::default());
-        app.add_startup_system(init_boid_scene);
-        app.add_system(count_boids);
-        app.add_system(handle_mouse);
-        app.add_systems((
-            build_or_update_quadtree
-                .run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
-            update_boids.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
-            move_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
-            ui_controls,
-            render_quadtree,
-        ));
+        app.add_systems(Startup, init_boid_scene);
+        app.add_systems(Update, (count_boids, handle_mouse));
+        app.add_systems(
+            Update,
+            (
+                build_or_update_quadtree
+                    .run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+                update_boids.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+                move_system.run_if(on_timer(Duration::from_secs_f32(1. / PHYISCS_TICK_RATE))),
+                ui_controls,
+                render_quadtree,
+            ),
+        );
     }
 }
 
@@ -58,11 +51,11 @@ pub struct EguiWin {
 }
 
 fn ui_controls(
-    mut commands: Commands,
-    mut eguiWin: Query<Entity, With<EguiWin>>,
+    _commands: Commands,
+    _eguiWin: Query<Entity, With<EguiWin>>,
     mut context: EguiContexts,
     mut universe: ResMut<BoidUniverse>,
-    diagnostics: Res<Diagnostics>,
+    // diagnostics: Res<Diagnostics>,
     bench: Res<QuadBench>,
 ) {
     egui::Window::new("Boid Control")
@@ -77,14 +70,14 @@ fn ui_controls(
                 "Render Graph",
             ));
             ui.label(format!("Boid Count: {}", universe.boid_count));
-            diagnostics
-                .iter()
-                .for_each(|diagnostic| match diagnostic.value() {
-                    Some(value) => {
-                        ui.label(format!("{} : {:.2}", diagnostic.name, value));
-                    }
-                    None => {}
-                });
+            // diagnostics
+            //     .iter()
+            //     .for_each(|diagnostic| match diagnostic.value() {
+            //         Some(value) => {
+            //             ui.label(format!("{} : {:.2}", diagnostic.name, value));
+            //         }
+            //         None => {}
+            //     });
             ui.label(format!("avg. query time: {} ns", bench.avarage_query_time));
             ui.label(format!("avg. build time: {} us", bench.avarage_build_time));
         });
@@ -92,9 +85,9 @@ fn ui_controls(
 }
 
 fn render_quadtree(
-    mut commands: Commands,
-    mut universe: ResMut<BoidUniverse>,
-    mut lines: ResMut<DebugLines>,
+    _commands: Commands,
+    universe: ResMut<BoidUniverse>,
+    mut gizmos : Gizmos,
 ) {
     if !universe.show_graph {
         return;
@@ -110,9 +103,9 @@ fn render_quadtree(
         let top_right = Vec3::new(max_x, max_y, 0.0);
         let top_left = Vec3::new(min_x, max_y, 0.0);
 
-        lines.line(bottom_left, bottom_right, 0.0);
-        lines.line(bottom_right, top_right, 0.0);
-        lines.line(top_right, top_left, 0.0);
-        lines.line(top_left, bottom_left, 0.0);
+        gizmos.line(bottom_left, bottom_right, Color::WHITE);
+        gizmos.line(bottom_right, top_right, Color::WHITE);
+        gizmos.line(top_right, top_left, Color::WHITE);
+        gizmos.line(top_left, bottom_left, Color::WHITE);
     })
 }

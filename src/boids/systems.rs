@@ -1,8 +1,7 @@
 use std::f32::consts::PI;
 
-use bevy::prelude::*;
-use bevy_inspector_egui::{bevy_egui::EguiContexts, egui};
-use instant::*;
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy_inspector_egui::bevy_egui::EguiContexts;
 
 use super::{components::*, resources::QuadBench, BoidUniverse};
 use crate::{
@@ -23,7 +22,7 @@ pub fn build_or_update_quadtree(
             collider.id = Some(universe.graph.insert(
                 collider.into_region(transform.translation),
                 Body {
-                    entity: entity,
+                    entity,
                     position: transform.translation,
                     velocity: velocity.value,
                 },
@@ -40,7 +39,7 @@ pub fn update_boids(
     let mut query_time: u128 = 0;
     query
         .iter_mut()
-        .for_each(|(entity, transform, mut collider, mut velocity)| {
+        .for_each(|(_entity, transform, mut collider, mut velocity)| {
             let x = transform.translation.x as i32;
             let y = transform.translation.y as i32;
             let win = universe.graph.size();
@@ -134,11 +133,12 @@ pub fn count_boids(query: Query<&Boid>, mut universe: ResMut<BoidUniverse>) {
 pub fn handle_mouse(
     mut commands: Commands,
     mut cursor_quad: Query<&mut Transform, With<Cursor>>,
-    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     buttons: Res<Input<MouseButton>>,
     window: Query<&Window>,
-    mut universe: ResMut<BoidUniverse>,
-    mut egui_context: EguiContexts,
+    universe: ResMut<BoidUniverse>,
+    _egui_context: EguiContexts,
     camera: Query<(&Camera, &GlobalTransform)>,
 ) {
     let window = window.single();
@@ -148,19 +148,19 @@ pub fn handle_mouse(
         return;
     }
 
-    if universe.mouse_used_by_egui{
+    if universe.mouse_used_by_egui {
         return;
     }
 
     let (camera, camera_transform) = camera.single();
     let mut cursor_quad_transform = cursor_quad.single_mut();
 
-    match camera.viewport_to_world_2d(&camera_transform, cursor_pos_win.unwrap()) {
+    match camera.viewport_to_world_2d(camera_transform, cursor_pos_win.unwrap()) {
         Some(pos) => {
             cursor_quad_transform.translation = Vec3::new(pos.x, pos.y, 0.0);
 
             if buttons.just_pressed(MouseButton::Left) {
-                self::spawn_boids(&mut commands, &asset_server, pos);
+                self::spawn_boids(&mut commands, &mut meshes, &mut materials, pos);
             }
 
             if buttons.just_pressed(MouseButton::Right) {
@@ -171,7 +171,12 @@ pub fn handle_mouse(
     }
 }
 
-fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec2) {
+fn spawn_boids(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    position: Vec2,
+) {
     for _ in 0..100 {
         let x = position.x + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
         let y = position.y + (rand::random::<f32>() - 0.5) * (CURSOR_QUAD_SIZE / 2.0);
@@ -184,10 +189,17 @@ fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec
         );
 
         commands
-            .spawn(SpriteBundle {
-                texture: assets.load("boid.png"),
+            .spawn(MaterialMesh2dBundle {
+                // texture: assets.load("boid.png"),
+                mesh: meshes
+                    .add(Mesh::from(shape::Quad::new(Vec2::new(
+                        BOID_SIZE,
+                        BOID_SIZE / 2.0,
+                    ))))
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::rgb(2., 2., 0.))),
                 // texture: assets.load("/files/assets/boid.png"),
-                transform: Transform::from_xyz(x, y, 0.0),
+                transform: Transform::from_xyz(x as f32, y as f32, 0.0),
                 ..Default::default()
             })
             .insert(Boid)
@@ -196,7 +208,7 @@ fn spawn_boids(commands: &mut Commands, assets: &Res<AssetServer>, position: Vec
     }
 }
 
-fn despawn_boids(mut commands: &mut Commands, position: Vec2, universe: &ResMut<BoidUniverse>) {
+fn despawn_boids(commands: &mut Commands, position: Vec2, universe: &ResMut<BoidUniverse>) {
     let query_region = Region::new(
         Coord::from_f32(
             position.x - (CURSOR_QUAD_SIZE / 2.0),
