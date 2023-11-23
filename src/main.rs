@@ -15,8 +15,6 @@ fn main() {
 
 #[wasm_bindgen(start)]
 fn init() {
-    run("#boids", 1280, 720);
-    // set default start, so main is not called by wasm init.
 }
 
 #[wasm_bindgen]
@@ -25,7 +23,7 @@ pub fn run(canvas_id: &str, width: u32, height: u32) {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                // canvas: Some(canvas_id.to_string()),
+                canvas: Some(canvas_id.to_string()),
                 resolution: WindowResolution::new(width as f32, height as f32),
                 ..default()
             }),
